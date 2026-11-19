@@ -401,202 +401,202 @@ async function handleUpdate(update, env) {
       const me = await tgCall(env, "getMe", {});
       const uname = me.result && me.result.username ? me.result.username : "manyuepojiabot";
       const link = `https://t.me/${uname}?start=inv_${uid}`;
-      等候 sendReply(env, chatid, `🔗 你的邀请链接：\n${link}\n\n每邀请 1 人 +5000000 token`);
-      返回;
+      await sendReply(env, chatId, `🔗 你的邀请链接：\n${link}\n\n每邀请 1 人 +5000000 token`);
+      return;
     }
 
-    如果 (CMD === "/invites") {
-      Const list = 等候 env.STORE.list({ prefix: "user:" });
-      Const rows = [];
-      for (Const k of list.键) {
-        Const raw = 等候 env.STORE.get(k.name);
-        如果 (raw) {
+    if (cmd === "/invites") {
+      const list = await env.STORE.list({ prefix: "user:" });
+      const rows = [];
+      for (const k of list.keys) {
+        const raw = await env.STORE.get(k.name);
+        if (raw) {
           try {
-            Const u = JSON.parse(raw);
-            如果 (u.invites && u.invites.长度) rows.push([parseInt(k.name.片(5), 10), u.invites.长度]);
+            const u = JSON.parse(raw);
+            if (u.invites && u.invites.length) rows.push([parseInt(k.name.slice(5), 10), u.invites.length]);
           } catch (e) {}
         }
       }
       rows.sort((a, b) => b[1] - a[1]);
-      如果 (!rows.长度) { 等候 sendReply(env, chatid, "还没有邀请记录"); 返回; }
-      Const 线条 = ["🏆 邀请排行"];
-      rows.片(0, 20).forEach((r, 我) => {
-        Const medal = 我 < 3 ? ["🥇", "🥈", "🥉"][我] : `${我 + 1}.`;
-        线条.push(`${medal} ${r[0]}：邀请 ${r[1]} 人`);
+      if (!rows.length) { await sendReply(env, chatId, "还没有邀请记录"); return; }
+      const lines = ["🏆 邀请排行"];
+      rows.slice(0, 20).forEach((r, i) => {
+        const medal = i < 3 ? ["🥇", "🥈", "🥉"][i] : `${i + 1}.`;
+        lines.push(`${medal} ${r[0]}：邀请 ${r[1]} 人`);
       });
-      等候 sendReply(env, chatid, 线条.加入("\n"));
-      返回;
+      await sendReply(env, chatId, lines.join("\n"));
+      return;
     }
 
-    如果 (CMD === "/clear") {
-      等候 env.STORE.delete("chat:" + chatid);
-      等候 sendReply(env, chatid, "记忆清空啦～");
-      返回;
+    if (cmd === "/clear") {
+      await env.STORE.delete("chat:" + chatId);
+      await sendReply(env, chatId, "记忆清空啦～");
+返回；
     }
 
-    如果 (CMD === "/skills") {
-      Constw = 等候 getWeapons(env);
-      Const线条 = Object.entries(w.skills).map(([k, v]) => {
-        Constn = (v && v.triggers) ? v.triggers.长度 : 0;
-        返回 `• ${k}（触发词 ${n} 个）`;
+    if (cmd === "/skills") {
+      const w = await getWeapons(env);
+      const lines = Object.entries(w.skills).map(([k, v]) => {
+        const n = (v && v.triggers) ? v.triggers.length : 0;
+        return `• ${k}（触发词 ${n} 个）`;
       });
-      等候 sendReply(env, chatid, "🧩 技能插件（按触发词自动启用）\n\n" + (线条.加入("\n") || "空"));
-      返回;
+      await sendReply(env, chatId, "🧩 技能插件（按触发词自动启用）\n\n" + (lines.join("\n") || "空"));
+返回；
     }
 
-    如果 (CMD === "/balance") {
-      Constu = 等候 getUser(env, uid);
+    if (cmd === "/balance") {
+      const u = await getUser(env, uid);
       resetDaily(u);
-      等候 sendReply(env, chatid,
+      await sendReply(env, chatId,
         `💰 你的 Token\n\n余额：${u.tokens}\n今日已用：${u.today_tokens} / 100000\n` +
         "（消耗：1 字 = 1 token，输入+回复字数）");
-      返回;
+返回；
     }
 
-    如果 (CMD === "/panel") {
-      Constu = 等候 getUser(env, uid);
+    if (cmd === "/panel") {
+      const u = await getUser(env, uid);
       resetDaily(u);
-      等候 sendReply(env, chatid,
+      await sendReply(env, chatId,
         "📊 主面板\n\n" +
         `🤖 机器人：@manyuepojiabot\n🎭 人格：${u.role}\n📦 模型：${env.AMD_MODEL || "未配置"}\n\n` +
         `🎫 token 余额：${u.tokens}\n📈 今日已用：${u.today_tokens} / 100000`);
-      返回;
+      return;
     }
 
     // ============ 武器库（管理员） ============
-    如果 (CMD === "/weapon" || CMD === "/armory") {
-      Constw = 等候 getWeapons(env);
-      Constjb = Object.键(w.jailbreaks).加入("、");
-      Constsk = Object.键(w.skills).加入("、");
-      Consttl = Object.键(w.tools).加入("、");
-      ConstACC = 等候 getAccounts(env);
-      等候 sendReply(env, chatid,
+    if (cmd === "/weapon" || cmd === "/armory") {
+      const w = await getWeapons(env);
+      const jb = Object.keys(w.jailbreaks).join("、");
+      const sk = Object.keys(w.skills).join("、");
+      const tl = Object.keys(w.tools).join("、");
+      const acc = await getAccounts(env);
+      await sendReply(env, chatId,
         "⚔️ 武器库\n\n" +
-        `🔓 破甲词(${Object.键(w.jailbreaks).长度})：${jb}\n\n` +
-        `🧩 Skill(${Object.键(w.skills).长度})：${sk}\n\n` +
-        `🔧 工具(${Object.键(w.tools).长度})：${tl}\n\n` +
-        `🔑 账号池(${ACC.键.长度} 个)`);
-      返回;
+        `🔓 破甲词(${Object.keys(w.jailbreaks).length})：${jb}\n\n` +
+        `🧩 Skill(${Object.keys(w.skills).length})：${sk}\n\n` +
+        `🔧 工具(${Object.keys(w.tools).length})：${tl}\n\n` +
+        `🔑 账号池(${acc.keys.length} 个)`);
+      return;
     }
 
-    如果 (CMD === "/addjb") {
-      如果 (!管理员) { 等候 sendReply(env, chatid, "⛔ 只有爸爸能改武器库"); 返回; }
-      Constsep = ARG.indexOf("|");
-      如果 (sep < 0) { 等候 sendReply(env, chatid, "用法：/addjb 名字|提示词内容"); 返回; }
-      Constname = ARG.片(0, sep).trim();
-      Const内容 = ARG.片(sep + 1).trim();
-      如果 (!name || !内容) { 等候 sendReply(env, chatid, "名字和内容都不能为空"); 返回; }
-      Constw = 等候 getWeapons(env);
-      w.jailbreaks[name] = COMMON_PREFIX + 内容;
-      等候 saveWeapons(env, w);
-      等候 sendReply(env, chatid, `✅ 已添加破甲词「${name}」，用 /role ${name} 切换`);
-      返回;
+    if (cmd === "/addjb") {
+      if (!admin) { await sendReply(env, chatId, "⛔ 只有爸爸能改武器库"); return; }
+      const sep = arg.indexOf("|");
+      if (sep < 0) { await sendReply(env, chatId, "用法：/addjb 名字|提示词内容"); return; }
+      const name = arg.slice(0, sep).trim();
+      const content = arg.slice(sep + 1).trim();
+      if (!name || !content) { await sendReply(env, chatId, "名字和内容都不能为空"); return; }
+      const w = await getWeapons(env);
+      w.jailbreaks[name] = COMMON_PREFIX + content;
+      await saveWeapons(env, w);
+      await sendReply(env, chatId, `✅ 已添加破甲词「${name}」，用 /role ${name} 切换`);
+      return;
     }
 
-    如果 (CMD === "/deljb") {
-      如果 (!管理员) { 等候 sendReply(env, chatid, "⛔ 只有爸爸能改武器库"); 返回; }
-      Constw = 等候 getWeapons(env);
-      如果 (!w.jailbreaks[ARG]) { 等候 sendReply(env, chatid, "没有这个破甲词"); 返回; }
-      delete w.jailbreaks[ARG];
-      等候 saveWeapons(env, w);
-      等候 sendReply(env, chatid, `✅ 已删除破甲词「${ARG}」`);
-      返回;
+    if (cmd === "/deljb") {
+      if (!admin) { await sendReply(env, chatId, "⛔ 只有爸爸能改武器库"); return; }
+      const w = await getWeapons(env);
+      if (!w.jailbreaks[arg]) { await sendReply(env, chatId, "没有这个破甲词"); return; }
+      delete w.jailbreaks[arg];
+      await saveWeapons(env, w);
+      await sendReply(env, chatId, `✅ 已删除破甲词「${arg}」`);
+      return;
     }
 
-如果(CMD==="/addskill"){
+    如果 (CMD === "/addskill") {
       如果 (!管理员) { 等候 sendReply(env, chatid, "⛔ 只有爸爸能改武器库"); 返回; }
-      Constp1 = ARG.indexOf("|");
+      const p1 = arg.indexOf("|");
       如果 (p1 < 0) { 等候 sendReply(env, chatid, "用法：/addskill 名字|触发词1,触发词2|方法论内容"); 返回; }
-      Constname = ARG.片(0, p1).trim();
-      Constrest = ARG.片(p1 + 1).trim();
-      Constp2 = rest.indexOf("|");
-设trigs=[]；
-      让 内容 = 休息;
+      const name = arg.slice(0, p1).trim();
+      const rest = arg.slice(p1 + 1).trim();
+      const p2 = rest.indexOf("|");
+      let trigs = [];
+      let content = rest;
       如果 (p2 >= 0) {
-        trigs = 休息.片(0, p2).分离(/[,，、]/).map(s => s.trim()).筛选(Boolean);
-        内容 = 休息.片(p2 + 1).trim();
+        trigs = rest.slice(0, p2).split(/[,，、]/).map(s => s.trim()).filter(Boolean);
+        content = rest.slice(p2 + 1).trim();
       }
-      如果 (!name || !内容) { 等候 sendReply(env, chatid, "名字和内容不能为空"); 返回; }
-      Constw = 等候 getWeapons(env);
-      w.skills[name] = { triggers: trigs, 内容 };
+      如果 (!name || !content) { 等候 sendReply(env, chatid, "名字和内容不能为空"); 返回; }
+      const w = 等候 getWeapons(env);
+      w.skills[name] = { triggers: trigs, content };
       等候 saveWeapons(env, w);
       等候 sendReply(env, chatid, `✅ 已添加 skill「${name}」（触发词 ${trigs.长度} 个）`);
-返回；
+      返回;
     }
 
     如果 (CMD === "/delskill") {
       如果 (!管理员) { 等候 sendReply(env, chatid, "⛔ 只有爸爸能改武器库"); 返回; }
-      现在 = 等候 getWeapons(env);
-      如果 (!w.技能[ARG]) { 等候 sendReply(env, chatid, "没有这个 skill"); 返回; }
-删除w.技能[ARG]；
+      Const w = 等候 getWeapons(env);
+      如果 (!w.skills[ARG]) { 等候 sendReply(env, chatid, "没有这个 skill"); 返回; }
+      delete w.skills[ARG];
       等候 saveWeapons(env, w);
       等候 sendReply(env, chatid, `✅ 已删除 skill「${ARG}」`);
-返回；
+      返回;
     }
 
-如果(CMD==="/addtool"){
+    如果 (CMD === "/addtool") {
       如果 (!管理员) { 等候 sendReply(env, chatid, "⛔ 只有爸爸能改武器库"); 返回; }
-      Constsep = ARG.indexOf("|");
+      Const sep = ARG.indexOf("|");
       如果 (sep < 0) { 等候 sendReply(env, chatid, "用法：/addtool 名字|工具说明"); 返回; }
-      Constname = ARG.片(0, sep).修剪();
-      Constdesc = ARG.片(sep + 1).修剪();
-      现在 = 等候 getWeapons(env);
-w.工具[name]=desc；
+      Const name = ARG.slice(0, sep).trim();
+      Const desc = ARG.slice(sep + 1).trim();
+      Const w = 等候 getWeapons(env);
+      w.tools[name] = desc;
       等候 saveWeapons(env, w);
       等候 sendReply(env, chatid, `✅ 已添加工具「${name}」`);
-返回；
+      返回;
     }
 
     如果 (CMD === "/deltool") {
       如果 (!管理员) { 等候 sendReply(env, chatid, "⛔ 只有爸爸能改武器库"); 返回; }
-现在=等待getWeapons(env)；现在 = 等候 getWeapons(env);
-      如果 (!w.工具[ARG]) { 等候 sendReply(env, chatid, "没有这个工具"); 返回; }如果 (!w.工具[ARG]) { 等候 sendReply(env, chatid, "没有这个工具"); 返回; }
-      删除 w.工具[ARG];删除 w.工具[ARG];
+      Const w = 等候 getWeapons(env);
+      如果 (!w.tools[ARG]) { 等候 sendReply(env, chatid, "没有这个工具"); 返回; }
+      delete w.tools[ARG];
       等候 saveWeapons(env, w);
       等候 sendReply(env, chatid, `✅ 已删除工具「${ARG}」`);
-返回；
-    }
-
-// 账号池
-如果(CMD==="/addkey"){如果 (CMD === "/addkey") {
-      如果 (!管理员) { 等候 sendReply(env, chatid, "⛔ 只有爸爸能碰账号池"); 返回; }如果 (!管理员) { 等候 sendReply(env, chatid, "⛔ 只有爸爸能碰账号池"); 返回; }
-      如果 (!ARG) { 等候 sendReply(env, chatid, "用法：/addkey rc-xxx"); 返回; }如果 (!ARG) { 等候 sendReply(env, chatid, "用法：/addkey rc-xxx"); 返回; }
-ConstACC=等候getAccounts(env)；常数ACC = 等候 getAccounts(env);
-ACC.键.推动(ARG.trim())；ACC.键.推(ARG.trim())；
-等候saveAccounts(env，ACC)；等候saveAccounts(美国)；
-      等候 sendReply(env, chatid, `✅ 已添加账号 #${ACC.键.长度 - 1}（尾号 ${ARG.trim().片(-4)}）`);等候 sendReply(env, chatid, `✅ 已添加账号 #${ACC.键.长度 - 1}（尾号 ${ARG.trim().片(-4)}）`);
       返回;
     }
 
-如果(CMD==="/keys"){
-      如果 (!管理员) { 等候 sendReply(env, chatid, "⛔ 只有爸爸能碰账号池"); 返回; }
-ConstACC=等候getAccounts(env)；
-      Const线条 = ACC.键.map((k, 我) => {
-        Const标志 = 我 === (ACC.当前 || 0) ? "➡️" : "　";
-        Const戴面具的 = k.长度 > 12 ? k.片(0, 6) + "..." + k.片(-4) : k;
-返回"${mark}#${i}${masked}"；返回'${mark}#${i}${masked}'；{标志}#${我}${戴面具的}"；返回 `${标志} #${我} ${戴面具的}`;
-      });});
-等待sendReply
-(
+    // 账号池// 账号池
+如果如果CMD==="/addkey"){如果 (CMD === "/addkey") {
+      如果 (!管理员) { 等候 sendReply(env, chatid, "⛔ 只有爸爸能碰账号池"); 返回; }如果 (!管理员) { 等候 sendReply(env, chatid, "⛔ 只有爸爸能碰账号池"); 返回; }
+      如果 (!ARG) { 等候 sendReply(env, chatid, "用法：/addkey rc-xxx"); 返回; }如果 (!ARG) { 等候 sendReply(env, chatid, "用法：/addkey rc-xxx"); 返回; }
+ConstACC=等候getAccounts(env)；常数ACC = 等候 getAccounts(env);
+ACC.键.推(ARG.修剪())；ACC.键.推(ARG.修剪());
+等待 saveAccounts (等待保存账户);等候 saveAccounts(env, ACC);
+      等候 sendReply(env, chatid, '✅ 已添加账号#${ACC.键.长度 - 1}（尾号 ${ARG.trim().slice(-4)}）`);等候 sendReply(env, chatid, `✅ 已添加账号 #${ACC.键.长度 - 1}（尾号 ${ARG.trim().slice(-4)}）`);
+      返回;返回;
     }
 
-如果(CMD==="/UseKey"){如果(CMD==="/UseKey"){(CMD==="/UseKey"){如果(CMD==="/UseKey"){
-如果(！admin){等候 sendReply(env，chatId，"⛔ 只有爸爸能碰账号池")；return；}如果(！admin){等候 sendReply(env，chatId，"⛔ 只有爸爸能碰账号池")；return；}如果 (!管理员) { 等候 sendReply(env, chatid, "⛔ 只有爸爸能碰账号池"); 返回; }如果 (!管理员) { 等候 sendReply(env, chatid, "⛔ 只有爸爸能碰账号池"); 返回; }
-在这个例子中,Const没有 = parseInt(ARG, 10);,Const没有 = parseInt(ARG, 10);
-Const交流电=等待getAccounts(env)；常数交流电=等待getAccounts(env)；ac=等待getAccounts(env)；常数ACC = 等候 getAccounts(env);
-如果(isNaN(没有)||没有<0||没有>=交流电.键.长度){等待sendReply(env，chatId，"编号不存在")；返回；}if(isNaN(idx)||idx<0||idx>=ac.keys。长度){等待sendReply(env，chatId，"编号不存在")；返回；}(isNaN(没有)||没有<0||没有>=交流电.键.长度){等候 sendReply(env，chatId，"编号不存在"ACC.当前=没有.当前=idx；编号不存在"); 返回; }
-ACC.当前=没有.当前=idx；
-等待saveAccounts;等待saveAccounts;等待saveAccounts;等待saveAccounts;等待saveAccounts;等待saveAccounts;等待saveAccounts
-等候 sendReply(env，chatId，'✅ 已切换账号#${idx}')等待sendReply(env, chatid, '✅ 已切换账号#${没有}`); sendReply(env，chatId，'✅ 已切换账号#${没有}')等待sendReply(env, chatid, '✅ 已切换账号#${没有}`);
-返回；返回；;
+如果(CMD==="/keys"){如果 (CMD === "/keys") {
+      如果 (!管理员) { 等候 sendReply(env, chatid, "⛔ 只有爸爸能碰账号池"); 返回; }如果 (!管理员) { 等候 sendReply(env, chatid, "⛔ 只有爸爸能碰账号池"); 返回; }
+ConstACC=等候getAccounts(env)；常数ACC = 等候 getAccounts(env);
+      Const线条 = ACC.键.地图((k, 我) => {Const线条 = ACC.键.地图((k, 我) => {
+        Const 标志 = 我 === (ACC.当前 || 0) ? "➡️" : "　";Const 标志 = 我 === (ACC.当前 || 0) ? "➡️" : "　";
+        Const 戴面具的 = k.长度 > 12 ? k.slice(0, 6) + "..." + k.slice(-4) : k;Const 戴面具的 = k.长度 > 12 ? k.slice(0, 6) + "..." + k.slice(-4) : k;
+        返回 `${标志} #${我} ${戴面具的}`;返回 `${标志} #${我} ${戴面具的}`;
+      });
+等候sendReply(env，chatid，"🔑 账号池\n\n"+线条.加入("\n"))；等候 sendReply(env, chatid, "🔑 账号池\n\n" + 线条.加入("\n"));
+      返回;返回;
     }
 
-如果(CMD==="/Delkey"){如果(CMD==="/Delkey"){(CMD==="/Delkey"){如果(CMD==="/Delkey"){
-如果(！admin){等候 sendReply(env，chatId，"⛔ 只有爸爸能碰账号池")；return；}如果(！admin){等候 sendReply(env，chatId，"⛔ 只有爸爸能碰账号池")；return；}如果 (!管理员) { 等候 sendReply(env, chatid, "⛔ 只有爸爸能碰账号池"); 返回; }如果 (!管理员) { 等候 sendReply(env, chatid, "⛔ 只有爸爸能碰账号池"); 返回; }
-在这个例子中,Const 没有 = parseInt(ARG, 10);,Const 没有 = parseInt(ARG, 10);
-常数交流电=等待getAccounts;常数ACC=等候getAccounts;
-如果(isNaN(没有)||没有<0||没有>=交流电.键.Length){等待sendReply(env，chatId，"编号不存在")；返回；}if(isNaN(idx)||idx<0||idx>=ac.keys.length){await sendReply(env，chatId，"编号不存在")；返回；}(isNaN(idx)||idx<0||idx>=ac.keys.length){await sendReply(env，chatId，"编号不存在"acc.keys.splice(idx，1)；acc.keys.splice(idx, 1);编号不存在"); 返回; }
-ACC.键.拼接(idx，1)；acc.键.拼接(没有, 1);
-如果(ACC.当前>=ACC.键.长度)ACC.当前=0；如果(ACC.当前>=ACC.键.长度)ACC.当前=0；(ACC.当前>=ACC.键.长度)ACC.当前=0；如果 (ACC.当前 >= ACC.键.长度) ACC.当前 = 0;
-等待saveAccounts；等待saveAccounts；等待saveAccounts；等待saveAccounts；等待saveAccounts；等待saveAccounts；等待saveAccounts
-等待sendReply等待sendReply(env，chatId，'✅env，chatId，'✅等待sendReply(env，chatId，'✅
+如果(CMD==="/UseKey"){如果 (CMD === "/UseKey") {
+      如果 (!管理员) { 等候 sendReply(env, chatid, "⛔ 只有爸爸能碰账号池"); 返回; }如果 (!管理员) { 等候 sendReply(env, chatid, "⛔ 只有爸爸能碰账号池"); 返回; }
+在这个例子中,,
+Const ACC=等候getAccounts(env)；Const ACC = 等候 getAccounts(env);
+      如果 (isNaN(没有) || 没有 < 0 || 没有 >= ACC.键.长度) { 等候 sendReply(env, chatid, "编号不存在"); 返回; }如果 (isNaN(没有) || 没有 < 0 || 没有 >= ACC.键.长度) { 等候 sendReply(env, chatid, "编号不存在"); 返回; }
+ACC.当前=idx；.当前=idx；
+等待 saveAccounts (等待保存账户);等候 saveAccounts(env, ACC);
+      等候 sendReply(env, chatid, '✅ 已切换账号#${没有}`);等候 sendReply(env, chatid, '✅ 已切换账号#${没有}`);
+      返回;返回;
+    }
+
+如果(CMD==="/Delkey"){如果 (CMD === "/Delkey") {
+      如果 (!管理员) { 等候 sendReply(env, chatid, "⛔ 只有爸爸能碰账号池"); 返回; }如果 (!管理员) { 等候 sendReply(env, chatid, "⛔ 只有爸爸能碰账号池"); 返回; }
+在这个例子中,,
+常数ACC=Const ACC=等候getAccounts(env)；
+      如果 (isNaN(idx) || idx < 0 || idx >= acc.keys.length) { 等候 sendReply(env, chatid, "编号不存在"); 返回; }如果 (isNaN(没有) || 没有 < 0 || 没有 >= ACC.键.长度) { 等候 sendReply(env, chatid, "编号不存在"); 返回; }
+ACC.键.拼接(idx，1)；
+      如果 (ACC.当前 >= ACC.键.长度) ACC.当前 = 0;
+等待 saveAccounts (等待保存账户);
+env，chatid，'✅等候sendReply(env，chatid，'✅
